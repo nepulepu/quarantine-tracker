@@ -54,7 +54,7 @@ void send_gps_data()
 
   Serial.println(s);
 
-  if (data_counter >= 10)
+  if (data_counter >= 1)
   {
     data_counter = 0;
 
@@ -66,12 +66,13 @@ void send_gps_data()
     ss.println("AT+CNMI=2,2,0,0,0\r");
     delay(1000);
 
-    ss.print("AT+CMGS=\"+60182030696\"\r");//Replace this with your mobile number
+    // ss.print("AT+CMGS=\"+60182030696\"\r"); //Replace this with your mobile number
+    ss.print("AT+CMGS=\"+601116034382\"\r"); //Replace this with your mobile number
     delay(1000);
     ss.print(s);
     ss.write(0x1A);
     delay(1000);
-    s = "www.google.com/maps/dir/";
+    s = "www.google.com/maps/@";
   }
 }
 
@@ -123,21 +124,21 @@ void setup()
 }
 
 void loop() {
-//    if (Serial.available()) {      // If anything comes in Serial (USB),
-//      Serial.println("Sending Message");
-//         ss.println("AT+CMGF=1\r");
-//         delay(1000);
+   if (Serial.available()) {      // If anything comes in Serial (USB),
+     Serial.println("Sending Message");
+        ss.println("AT+CMGF=1\r");
+        delay(1000);
 
-//         ss.println("AT+CNMI=2,2,0,0,0\r");
-//         delay(1000);
+        ss.println("AT+CNMI=2,2,0,0,0\r");
+        delay(1000);
 
-//         ss.print("AT+CMGS=\"+60182030696\"\r");//Replace this with your mobile number
-//         delay(1000);
-//         ss.print("halo");
-//         ss.write(0x1A);
-//         delay(1000);
-//         s = "www.google.com/maps/dir/";
-//    }
+        ss.print("AT+CMGS=\"+601116034382\"\r");//Replace this with your mobile number
+        delay(1000);
+        ss.print("www.google.com/maps/dir/");
+        ss.write(0x1A);
+        delay(1000);
+        s = "www.google.com/maps/dir/";
+   }
  
    if (ss.available()) {     // If anything comes in ss (pins 0 & 1)
      Serial.write(ss.read());   // read it and send it out Serial (USB)
@@ -147,15 +148,15 @@ void loop() {
 
   if (millis() > 5000 && gps.charsProcessed() < 10)
     Serial.println(F("No GPS data received: check wiring"));
-    Serial.println(gps.location.lat());
-    Serial.println(gps.location.lng());
+    
 
 
   unsigned long currentMillis = millis();
 
   if ((unsigned long)(currentMillis - previousMillis) >= interval) {
-
-    send_gps_data();
+    Serial.println(gps.location.lat());
+    Serial.println(gps.location.lng());
+    // send_gps_data();
     previousMillis = currentMillis;
   }
 }
