@@ -2,9 +2,9 @@
 #include <SoftwareSerial.h>
 
 
-String s = "www.google.com/maps/dir/";
+String s = "google.com/maps/dir/";
 
-unsigned long interval = 10000;
+unsigned long interval = 600000;
 static const uint32_t GPSBaud = 9600;
 unsigned long previousMillis = 0;
 int data_counter;
@@ -54,7 +54,7 @@ void send_gps_data()
 
   Serial.println(s);
 
-  if (data_counter >= 1)
+  if (data_counter >= 3)
   {
     data_counter = 0;
 
@@ -72,7 +72,7 @@ void send_gps_data()
     ss.print(s);
     ss.write(0x1A);
     delay(1000);
-    s = "www.google.com/maps/@";
+    s = "google.com/maps/dir/";
   }
 }
 
@@ -125,7 +125,7 @@ void setup()
 
 void loop() {
    if (Serial.available()) {      // If anything comes in Serial (USB),
-     Serial.println("Sending Message");
+     Serial.println("hantar mesej demo");
         ss.println("AT+CMGF=1\r");
         delay(1000);
 
@@ -134,7 +134,7 @@ void loop() {
 
         ss.print("AT+CMGS=\"+601116034382\"\r");//Replace this with your mobile number
         delay(1000);
-        ss.print("www.google.com/maps/dir/");
+        ss.print("tengok youtube.com");
         ss.write(0x1A);
         delay(1000);
         s = "www.google.com/maps/dir/";
@@ -152,11 +152,15 @@ void loop() {
 
 
   unsigned long currentMillis = millis();
-
-  if ((unsigned long)(currentMillis - previousMillis) >= interval) {
+if ((unsigned long)(currentMillis - previousMillis) >= 20000) {
     Serial.println(gps.location.lat());
-    Serial.println(gps.location.lng());
-    // send_gps_data();
+    Serial.println(gps.location.lng());}
+
+
+if ((unsigned long)(currentMillis - previousMillis) >= interval) {
+    // Serial.println(gps.location.lat());
+    // Serial.println(gps.location.lng());
+    send_gps_data();
     previousMillis = currentMillis;
   }
 }
