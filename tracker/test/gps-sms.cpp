@@ -67,7 +67,8 @@ void send_gps_data()
     delay(1000);
 
     // ss.print("AT+CMGS=\"+60182030696\"\r"); //Replace this with your mobile number
-    ss.print("AT+CMGS=\"+601116034382\"\r"); //Replace this with your mobile number
+    // ss.print("AT+CMGS=\"+601116034382\"\r"); //Replace this with your mobile number
+    ss.print("AT+CMGS=\"+60194421397\"\r");
     delay(1000);
     ss.print(s + "\nLast Lat: "+ String(gps.location.lat()) + "\nLast Long: "+ String(gps.location.lng()));
     // ss.print(" Last Lat: "+ String(gps.location.lat()));
@@ -134,10 +135,11 @@ void loop() {
         ss.println("AT+CNMI=2,2,0,0,0\r");
         delay(1000);
 
-        ss.print("AT+CMGS=\"+601116034382\"\r");//Replace this with your mobile number
+        // ss.print("AT+CMGS=\"+601116034382\"\r");//Replace this with your mobile number
+        ss.print("AT+CMGS=\"+60194421397\"\r");//Replace this with your mobile number
         delay(1000);
         ss.print("tengok youtube.com");
-        ss.print("bruh");
+        // ss.print("bruh");
         ss.write(0x1A);
         delay(1000);
         s = "www.google.com/maps/dir/";
@@ -155,7 +157,7 @@ void loop() {
 
 
   unsigned long currentMillis = millis();
-if ((unsigned long)(currentMillis - previousMillis) >= 20000) {
+if ((unsigned long)(currentMillis - previousMillis) >= 30000) {
     Serial.println(gps.location.lat());
     Serial.println(gps.location.lng());}
 

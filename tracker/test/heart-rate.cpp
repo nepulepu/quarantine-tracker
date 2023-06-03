@@ -18,12 +18,16 @@
 
 */
 #include <Arduino.h>
-
+#include <stack>
 //  Variables
 int PulseSensorPurplePin = 36;   
 int LED13 = 2;   
 int Signal;            
 int Threshold = 2000; 
+int count = 9;
+unsigned long starttime = 0;
+int heartrate = 0;
+bool counted = false;
 
 
 // The SetUp Function:
@@ -38,15 +42,21 @@ void loop() {
 
   Signal = analogRead(PulseSensorPurplePin);  // Read the PulseSensor's value.
                                               // Assign this value to the "Signal" variable.
-
+while (millis()<starttime+5000){   
    Serial.println(Signal);                    // Send the Signal value to Serial Plotter.
 
 
-   if(Signal > Threshold){                          // If the signal is above "550", then "turn-on" Arduino's on-Board LED.
+   if(Signal > Threshold && counted == false){                          // If the signal is above "550", then "turn-on" Arduino's on-Board LED.
      digitalWrite(LED13,HIGH);
-   } else {
+    counted = true;
+    count++;
+   } 
+   else {
+    counted=false;
      digitalWrite(LED13,LOW);                //  Else, the sigal must be below "550", so "turn-off" this LED.
    }
+}
+
 
 
 delay(10);
