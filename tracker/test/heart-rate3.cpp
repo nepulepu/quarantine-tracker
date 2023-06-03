@@ -19,7 +19,6 @@
 */
 #include <Arduino.h>
 #include <stack>
-#include <stack>
 
 struct Queue {
   int front, rear, capacity;

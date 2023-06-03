@@ -127,27 +127,27 @@ void setup()
 }
 
 void loop() {
-   if (Serial.available()) {      // If anything comes in Serial (USB),
-     Serial.println("hantar mesej demo");
-        ss.println("AT+CMGF=1\r");
-        delay(1000);
+  //  if (Serial.available()) {      // If anything comes in Serial (USB),
+  //    Serial.println("hantar mesej demo");
+  //       ss.println("AT+CMGF=1\r");
+  //       delay(1000);
 
-        ss.println("AT+CNMI=2,2,0,0,0\r");
-        delay(1000);
+  //       ss.println("AT+CNMI=2,2,0,0,0\r");
+  //       delay(1000);
 
-        // ss.print("AT+CMGS=\"+601116034382\"\r");//Replace this with your mobile number
-        ss.print("AT+CMGS=\"+60194421397\"\r");//Replace this with your mobile number
-        delay(1000);
-        ss.print("tengok youtube.com");
-        // ss.print("bruh");
-        ss.write(0x1A);
-        delay(1000);
-        s = "www.google.com/maps/dir/";
-   }
+  //       // ss.print("AT+CMGS=\"+601116034382\"\r");//Replace this with your mobile number
+  //       ss.print("AT+CMGS=\"+60194421397\"\r");//Replace this with your mobile number
+  //       delay(1000);
+  //       ss.print("tengok youtube.com");
+  //       // ss.print("bruh");
+  //       ss.write(0x1A);
+  //       delay(1000);
+  //       s = "www.google.com/maps/dir/";
+  //  }
  
-   if (ss.available()) {     // If anything comes in ss (pins 0 & 1)
-     Serial.write(ss.read());   // read it and send it out Serial (USB)
-   }
+  //  if (ss.available()) {     // If anything comes in ss (pins 0 & 1)
+  //    Serial.write(ss.read());   // read it and send it out Serial (USB)
+  //  }
 
   smartDelay(2000);
 
