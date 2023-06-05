@@ -16,9 +16,12 @@
 5) A great first-step in troubleshooting your circuit and connections.
 6) "Human-readable" code that is newbie friendly."
 
-*/
+// */
 #include <Arduino.h>
-#include <stack>
+// #include <Arduino_FreeRTOS.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+// #include <stack>
 #include <TinyGPSPlus.h>
 #include <SoftwareSerial.h>
 
@@ -44,6 +47,8 @@ int count = 9;
 unsigned long starttime = 0;
 unsigned long lastmsg = 0;
 double heartrate = 0;
+double realHR = 95;
+bool sendingmsg = false;
 
 
 struct Queue {
@@ -163,22 +168,25 @@ void send_gps_data()
     ss.println("AT+CNMI=2,2,0,0,0\r");
     delay(1000);
 
-    // ss.print("AT+CMGS=\"+60182030696\"\r"); //Replace this with your mobile number
+    // // ss.print("AT+CMGS=\"+60182030696\"\r"); //Replace this with your mobile number
     // ss.print("AT+CMGS=\"+601116034382\"\r"); //Replace this with your mobile number
     ss.print("AT+CMGS=\"+60194421397\"\r");
     delay(1000);
-    ss.print(s + "\nLast Lat: "+ String(gps.location.lat()) + "\nLast Long: "+ String(gps.location.lng()));
-    ss.print("\n Heart Rate: "+ String(heartrate));
-    // ss.print(" Last Lat: "+ String(gps.location.lat()));
-    // ss.print(" Last Long: "+ String(gps.location.lng()));
+
+    ss.print(s + "\n\nLast Lat: "+ String(gps.location.lat()) + "\nLast Long: "+ String(gps.location.lng()));
+    ss.print("\nHeart Rate: "+ String(realHR));
+    // ss.print("\nLast Lat: "+ String(gps.location.lat()));
+    // ss.print("\nLast Long: "+ String(gps.location.lng()));
     ss.write(0x1A);
     delay(1000);
     s = "google.com/maps/dir/";
   }
 }
 void send_abnormal_heartrate(){
-  if(millis()-lastmsg>60000){
-  Serial.println("Sending Message");
+  if(millis()-lastmsg>120000 && !sendingmsg){
+  sendingmsg=true;
+  Serial.println("Sending HR Warning Message");
+  Serial.printf("abnormal HR %.2lf \n",realHR);
 
     ss.println("AT+CMGF=1\r");
     delay(1000);
@@ -186,21 +194,30 @@ void send_abnormal_heartrate(){
     ss.println("AT+CNMI=2,2,0,0,0\r");
     delay(1000);
 
-    // ss.print("AT+CMGS=\"+60182030696\"\r"); //Replace this with your mobile number
+    // // ss.print("AT+CMGS=\"+60182030696\"\r"); //Replace this with your mobile number
     // ss.print("AT+CMGS=\"+601116034382\"\r"); //Replace this with your mobile number
     ss.print("AT+CMGS=\"+60194421397\"\r");
     delay(1000);
-    ss.print("WARNING!! ABNORMAL HEART RATE\ngoogle.com/maps/dir/"+String(gps.location.lat(), 6)+","+String(gps.location.lng(), 6) + "/ \nLast Lat: "+ String(gps.location.lat()) + "\nLast Long: "+ String(gps.location.lng()));
-    ss.print("\n Heart Rate: "+ String(heartrate));
-    // ss.print(" Last Lat: "+ String(gps.location.lat()));
-    // ss.print(" Last Long: "+ String(gps.location.lng()));
+
+    ss.print("WARNING!! ABNORMAL HEART RATE\ngoogle.com/maps/dir/"+String(gps.location.lat(), 6)+","+String(gps.location.lng(), 6) + "/ \n\nLast Lat: "+ String(gps.location.lat()) + "\nLast Long: "+ String(gps.location.lng()));
+    ss.print("\nHeart Rate: "+ String(realHR));
+    // ss.print("\nLast Lat: "+ String(gps.location.lat()));
+    // ss.print("\nLast Long: "+ String(gps.location.lng()));
     ss.write(0x1A);
     delay(1000);
+    lastmsg=millis();
+    sendingmsg=false;
     }
+   
 }
 void send_abnormal_location(){
-    if(millis()-lastmsg>60000){
-  Serial.println("Sending Message");
+  // Serial.println("Sending Location Warning Message");
+    if(millis()-lastmsg>300000 && !sendingmsg){
+      sendingmsg=true;
+  Serial.println("Sending Location Warning Message");
+  Serial.println("Last Lat: "+ String(gps.location.lat()));
+  Serial.println("Last Long: "+ String(gps.location.lng()));
+
 
     ss.println("AT+CMGF=1\r");
     delay(1000);
@@ -208,17 +225,21 @@ void send_abnormal_location(){
     ss.println("AT+CNMI=2,2,0,0,0\r");
     delay(1000);
 
-    // ss.print("AT+CMGS=\"+60182030696\"\r"); //Replace this with your mobile number
+    // // ss.print("AT+CMGS=\"+60182030696\"\r"); //Replace this with your mobile number
     // ss.print("AT+CMGS=\"+601116034382\"\r"); //Replace this with your mobile number
     ss.print("AT+CMGS=\"+60194421397\"\r");
     delay(1000);
-    ss.print("WARNING!! OUTSIDE QUARANTINE\ngoogle.com/maps/dir/"+String(gps.location.lat(), 6)+","+String(gps.location.lng(), 6) + "/ \nLast Lat: "+ String(gps.location.lat()) + "\nLast Long: "+ String(gps.location.lng()));
-    ss.print("\n Heart Rate: "+ String(heartrate));
-    // ss.print(" Last Lat: "+ String(gps.location.lat()));
-    // ss.print(" Last Long: "+ String(gps.location.lng()));
+    
+    ss.print("WARNING!! OUTSIDE QUARANTINE AREA\n\ngoogle.com/maps/dir/"+String(gps.location.lat(), 6)+","+String(gps.location.lng(), 6) + "/ \n\nLast Lat: "+ String(gps.location.lat()) + "\nLast Long: "+ String(gps.location.lng()));
+    ss.print("\nHeart Rate: "+ String(realHR));
+    // ss.print("\nLast Lat: "+ String(gps.location.lat()));
+    // ss.print("\nLast Long: "+ String(gps.location.lng()));
     ss.write(0x1A);
     delay(1000);
+    lastmsg=millis();
+    sendingmsg=false;
     }
+    
 }
 
 //  Variables
@@ -226,6 +247,74 @@ bool counted = false;
 Queue q(50);
 Queue t(2);
 
+void gpsTask(void* parameter);
+void sensorTask(void* parameter);
+
+void gpsTask(void* parameter) {
+  while (true) {
+    // GPS code here
+    smartDelay(2000);
+
+if (millis() > 5000 && gps.charsProcessed() < 10)
+    Serial.println(F("No GPS data received: check wiring"));
+    
+  unsigned long currentMillis = millis();
+if ((unsigned long)(currentMillis - previousMillis) >= 30000) {
+    Serial.println(gps.location.lat());
+    Serial.println(gps.location.lng());}
+
+
+if ((unsigned long)(currentMillis - previousMillis) >= interval) {
+    // Serial.println(gps.location.lat());
+    // Serial.println(gps.location.lng());
+    send_gps_data();
+    previousMillis = currentMillis;
+  }
+
+if(((gps.location.lat()<3.04 || gps.location.lat()>3.06)&& gps.location.lat()!=0)||((gps.location.lng()<101.71 || gps.location.lng()>101.73)&& gps.location.lng()!=0)){
+send_abnormal_location();
+// Serial.println("location sus");
+}
+    // Delay to control task execution rate
+    vTaskDelay(pdMS_TO_TICKS(2000));
+  }
+}
+
+void sensorTask(void* parameter) {
+  while (true) {
+    // Sensor code here
+  Signal = analogRead(PulseSensorPurplePin);  // Read the PulseSensor's value.
+  // Serial.println(Signal); 
+  q.queueEnqueue(Signal);
+  float wave = q.queueAverage();                                              // Assign this value to the "Signal" variable.
+  // Serial.printf("%.2f %.2lf %d %d\n", wave, heartrate, starttime, millis());
+  
+                   // Send the Signal value to Serial Plotter.
+
+
+   if(wave > Threshold && counted == false){                          // If the signal is above "550", then "turn-on" Arduino's on-Board LED.
+     digitalWrite(LED13,HIGH);
+    counted = true;
+    count++;
+    heartrate = 60000/(millis()-starttime);
+   } 
+   else if((wave < Threshold) && counted) {
+    counted=false;
+    digitalWrite(LED13,LOW);                //  Else, the sigal must be below "550", so "turn-off" this LED.
+    starttime = millis();
+   }
+
+  if(heartrate>40&&heartrate<200){
+    realHR=heartrate;
+  }
+   if(realHR<70 ||realHR>150){
+    // Serial.printf("abnormal HR %d \n",heartrate);
+    send_abnormal_heartrate();
+  }
+    // Delay to control task execution rate
+    vTaskDelay(pdMS_TO_TICKS(10));
+  }
+}
 
 // The SetUp Function:
 void setup() {
@@ -270,66 +359,70 @@ void setup() {
 
   // set SMS mode to text mode
   ss.println("AT+CMGF=1\r");
-  delay(1000);
 
   //ss.println("AT+LOCATION=2\r");
 
   Serial.println("Setup Executed");
+
+  xTaskCreatePinnedToCore(gpsTask, "GPS Task", 2048, NULL, 2, NULL, 0);
+  xTaskCreatePinnedToCore(sensorTask, "Sensor Task", 2048, NULL, 1, NULL, 1);
 }
 
 // The Main Loop Function
 void loop() {
   (digitalRead(5)==0)? digitalWrite(4, HIGH): digitalWrite(4, LOW);
-
+delay(10);
   // while (millis()<starttime+5000){ 
-  Signal = analogRead(PulseSensorPurplePin);  // Read the PulseSensor's value.
-  // Serial.println(Signal); 
-  q.queueEnqueue(Signal);
-  float wave = q.queueAverage();                                              // Assign this value to the "Signal" variable.
-  Serial.printf("%.2f %.2lf %d %d\n", wave, heartrate, starttime, millis());
+//   Signal = analogRead(PulseSensorPurplePin);  // Read the PulseSensor's value.
+//   // Serial.println(Signal); 
+//   q.queueEnqueue(Signal);
+//   float wave = q.queueAverage();                                              // Assign this value to the "Signal" variable.
+//   Serial.printf("%.2f %.2lf %d %d\n", wave, heartrate, starttime, millis());
   
-                   // Send the Signal value to Serial Plotter.
+//                    // Send the Signal value to Serial Plotter.
 
 
-   if(wave > Threshold && counted == false){                          // If the signal is above "550", then "turn-on" Arduino's on-Board LED.
-     digitalWrite(LED13,HIGH);
-    counted = true;
-    count++;
-    heartrate = 60000/(millis()-starttime);
-   } 
-   else if((wave < Threshold) && counted) {
-    counted=false;
-    digitalWrite(LED13,LOW);                //  Else, the sigal must be below "550", so "turn-off" this LED.
-    starttime = millis();
-   }
+//    if(wave > Threshold && counted == false){                          // If the signal is above "550", then "turn-on" Arduino's on-Board LED.
+//      digitalWrite(LED13,HIGH);
+//     counted = true;
+//     count++;
+//     heartrate = 60000/(millis()-starttime);
+//    } 
+//    else if((wave < Threshold) && counted) {
+//     counted=false;
+//     digitalWrite(LED13,LOW);                //  Else, the sigal must be below "550", so "turn-off" this LED.
+//     starttime = millis();
+//    }
 
 
-   smartDelay(2000);
+//    smartDelay(2000);
 
-if (millis() > 5000 && gps.charsProcessed() < 10)
-    Serial.println(F("No GPS data received: check wiring"));
+// if (millis() > 5000 && gps.charsProcessed() < 10)
+//     Serial.println(F("No GPS data received: check wiring"));
     
-  unsigned long currentMillis = millis();
-if ((unsigned long)(currentMillis - previousMillis) >= 30000) {
-    Serial.println(gps.location.lat());
-    Serial.println(gps.location.lng());}
+//   unsigned long currentMillis = millis();
+// if ((unsigned long)(currentMillis - previousMillis) >= 30000) {
+//     Serial.println(gps.location.lat());
+//     Serial.println(gps.location.lng());}
 
 
-if ((unsigned long)(currentMillis - previousMillis) >= interval) {
-    // Serial.println(gps.location.lat());
-    // Serial.println(gps.location.lng());
-    send_gps_data();
-    previousMillis = currentMillis;
-  }
+// if ((unsigned long)(currentMillis - previousMillis) >= interval) {
+//     // Serial.println(gps.location.lat());
+//     // Serial.println(gps.location.lng());
+//     send_gps_data();
+//     previousMillis = currentMillis;
+//   }
 
-if((heartrate<60 ||heartrate>150)&& heartrate!=0){
-send_abnormal_heartrate();
-lastmsg=millis();
-}
-if(((gps.location.lat()<3.04 || gps.location.lat()>3.06)&& gps.location.lat()!=0)||((gps.location.lng()<101.71 || gps.location.lng()>101.73)&& gps.location.lng()!=0)){
-send_abnormal_location();
-lastmsg=millis();
-}
+// if((heartrate<70 ||heartrate>150)&& (heartrate>40 && heartrate<200)){
+// send_abnormal_heartrate();
+// }
+// if(((gps.location.lat()<3.04 || gps.location.lat()>3.06)&& gps.location.lat()!=0)||((gps.location.lng()<101.71 || gps.location.lng()>101.73)&& gps.location.lng()!=0)){
+// send_abnormal_location();
+// }
+
+
+
+
 // }
 
 // heartrate = count*60000/(millis()+1);
